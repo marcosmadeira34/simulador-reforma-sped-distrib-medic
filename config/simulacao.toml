@@ -1,0 +1,24 @@
+[calculadora]
+url = "http://localhost:8080/api"
+timeout_s = 30
+workers = 4          # documentos enviados em paralelo
+
+[simulacao]
+# Data do fato gerador simulado. A calculadora aplica a vigência de cada regra a essa data.
+dh_fato_gerador = "2027-01-15T10:00:00-03:00"
+classificacao_csv = "classificacao.csv"
+informar_tp_doc = true
+# Confere na calculadora se cada NCM existe na data simulada (o ncm-aplicavel não confere).
+validar_ncm = true
+
+# Tributos atuais que continuam existindo na data simulada e entram na "carga nova".
+# Em 2027 o ICMS segue integral (a transição dele vai de 2029 a 2032), e PIS/COFINS deixam de existir.
+# Opções: ICMS, ICMS_ST, IPI, PIS, COFINS. Ajuste ao cenário (ex.: IPI para produtos da ZFM).
+tributos_remanescentes = ["ICMS", "ICMS_ST"]
+
+# Obrigatórias a partir de 2027 (proibidas antes). Valores do exemplo oficial do repositório
+# da calculadora: substitua pelas alíquotas do cenário que você quer simular.
+[simulacao.aliquotas_nominais]
+cbs = 8.8
+ibs_estadual = 0.05
+ibs_municipal = 0.05

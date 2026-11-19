@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- NF-e FICTÍCIA para testes do simulador. Não tem assinatura nem autorização. -->
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+ <NFe>
+  <infNFe Id="NFe35261011222333000181550010000050031000050030" versao="4.00">
+    <ide><cUF>35</cUF><natOp>VENDA DE MERCADORIA</natOp><mod>55</mod><serie>1</serie><nNF>5003</nNF><dhEmi>2026-10-20T10:00:00-03:00</dhEmi><tpNF>1</tpNF><idDest>1</idDest><cMunFG>3505708</cMunFG></ide>
+    <emit><CNPJ>11222333000181</CNPJ><xNome>DISTRIBUIDORA FICTICIA HOSPITALAR LTDA</xNome><enderEmit><cMun>3505708</cMun><xMun>BARUERI</xMun><UF>SP</UF></enderEmit><CRT>3</CRT></emit>
+    <dest><CNPJ>55666777000188</CNPJ><xNome>SANTA CASA FICTICIA DE MISERICORDIA</xNome><enderDest><cMun>3509502</cMun><UF>SP</UF></enderDest><indIEDest>1</indIEDest></dest>
+    <det nItem="1">
+      <prod><cProd>MED001</cProd><cEAN>SEM GTIN</cEAN><xProd>DIPIRONA SODICA 500MG/ML INJ CX 100 AMP</xProd><NCM>30049099</NCM><CFOP>5102</CFOP><uCom>CX</uCom><qCom>5.0000</qCom><vUnCom>85.00</vUnCom><vProd>425.00</vProd><indTot>1</indTot><med><cProdANVISA>1000000000011</cProdANVISA><vPMC>120.00</vPMC></med></prod>
+      <imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>425.00</vBC><pICMS>18.00</pICMS><vICMS>76.50</vICMS></ICMS00></ICMS><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto>
+    </det>
+    <det nItem="2">
+      <prod><cProd>LUV001</cProd><cEAN>SEM GTIN</cEAN><xProd>LUVA CIRURGICA ESTERIL PAR</xProd><NCM>40151100</NCM><CFOP>5102</CFOP><uCom>PAR</uCom><qCom>200.0000</qCom><vUnCom>3.20</vUnCom><vProd>640.00</vProd><indTot>1</indTot></prod>
+      <imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>640.00</vBC><pICMS>18.00</pICMS><vICMS>115.20</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>640.00</vBC><pPIS>1.65</pPIS><vPIS>10.56</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>640.00</vBC><pCOFINS>7.60</pCOFINS><vCOFINS>48.64</vCOFINS></COFINSAliq></COFINS></imposto>
+    </det>
+    <det nItem="3">
+      <prod><cProd>NUT001</cProd><cEAN>SEM GTIN</cEAN><xProd>DIETA ENTERAL 1L FICTICIA</xProd><NCM>21069090</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>14.0000</qCom><vUnCom>70.00</vUnCom><vProd>980.00</vProd><indTot>1</indTot></prod>
+      <imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>980.00</vBC><pICMS>18.00</pICMS><vICMS>176.40</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>980.00</vBC><pPIS>1.65</pPIS><vPIS>16.17</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>980.00</vBC><pCOFINS>7.60</pCOFINS><vCOFINS>74.48</vCOFINS></COFINSAliq></COFINS></imposto>
+    </det>
+    <det nItem="4">
+      <prod><cProd>VAC001</cProd><cEAN>SEM GTIN</cEAN><xProd>VACINA INFLUENZA FICTICIA DOSE</xProd><NCM>30024121</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>10.0000</qCom><vUnCom>100.00</vUnCom><vProd>1000.00</vProd><indTot>1</indTot><med><cProdANVISA>1000000000033</cProdANVISA><vPMC>95.00</vPMC></med></prod>
+      <imposto><ICMS><ICMS40><orig>0</orig><CST>40</CST></ICMS40></ICMS><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto>
+    </det>
+  </infNFe>
+ </NFe>
+</nfeProc>

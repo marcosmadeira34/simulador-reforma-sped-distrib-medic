@@ -1,0 +1,1 @@
+"""Classificadores específicos por setor."""

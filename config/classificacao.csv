@@ -1,0 +1,10 @@
+# De-para NCM/CFOP -> CST e cClassTrib (CBS/IBS). REGRAS ILUSTRATIVAS: revise com a área tributária
+# e confira nas tabelas oficiais: GET /api/calculadora/dados-abertos/classificacoes-tributarias/...
+# Vale o prefixo de NCM mais longo. cfop = * casa com qualquer CFOP. Prefixo vazio = regra padrão.
+# Colunas is_* (opcionais): ligam o Imposto Seletivo. is_ad_valorem é a alíquota simulada (%):
+# o valor 10.0 vem do exemplo oficial da calculadora e é só ilustrativo.
+ncm_prefixo;cfop;cst;cclasstrib;descricao;is_cst;is_cclasstrib;is_ad_valorem
+1006;*;200;200003;Arroz - cesta básica (redução de 100%), conforme exemplo oficial da calculadora;;;
+0901;*;000;000001;Café - tributação integral (ilustrativo);;;
+8471;*;000;000001;Computadores - tributação integral;;;
+2202;*;000;000001;Bebidas açucaradas - tributação integral + Imposto Seletivo;000;000001;10.0

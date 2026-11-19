@@ -1,0 +1,13 @@
+services:
+  calculadora:
+    build:
+      context: .
+      dockerfile: docker/calculadora.Dockerfile
+      args:
+        RTC_REF: main
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080"]
+      interval: 15s
+      retries: 10

@@ -1,0 +1,6 @@
+# Tipo de comprador por CNPJ (FICTÍCIOS). Quem não estiver aqui é tratado como PRIVADO.
+# tipo: ORGAO_PUBLICO | ENTIDADE_IMUNE | PRIVADO
+cnpj;tipo;nome
+44555666000177;ORGAO_PUBLICO;Prefeitura Municipal Fictícia
+55666777000188;ENTIDADE_IMUNE;Santa Casa Fictícia (CEBAS)
+33444555000166;PRIVADO;Hospital Fictício São Lucas

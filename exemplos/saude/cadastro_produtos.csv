@@ -1,0 +1,12 @@
+# Cadastro FICTÍCIO de produtos da distribuidora.
+# tipo: MEDICAMENTO | SORO_VACINA | DISPOSITIVO_MEDICO | ACESSIBILIDADE | NUTRICAO | OUTRO
+# aliquota_zero = S quando o medicamento está na lista de alíquota zero da LC 214 (confirmar caso a caso).
+cod_item;tipo;registro_anvisa;aliquota_zero;descricao
+MED001;MEDICAMENTO;1000000000011;N;Dipirona sódica injetável
+MED002;MEDICAMENTO;1000000000022;S;Oncológico fictício marcado como alíquota zero (ilustrativo)
+MED003;MEDICAMENTO;;N;Produto manipulado sem registro informado
+VAC001;SORO_VACINA;1000000000033;N;Vacina fictícia contra a gripe (NCM 30024121)
+DIS001;DISPOSITIVO_MEDICO;;N;Seringa descartável
+ACE001;ACESSIBILIDADE;;N;Cadeira de rodas
+NUT001;NUTRICAO;;N;Dieta enteral
+# LUV001 (luva) fica fora do cadastro e com NCM extinto (40151100) de propósito: demonstra a validação de NCM.

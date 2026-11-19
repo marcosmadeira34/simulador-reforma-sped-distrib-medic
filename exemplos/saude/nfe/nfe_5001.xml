@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- NF-e FICTÍCIA para testes do simulador. Não tem assinatura nem autorização. -->
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+ <NFe>
+  <infNFe Id="NFe35261011222333000181550010000050011000050010" versao="4.00">
+    <ide><cUF>35</cUF><natOp>VENDA DE MERCADORIA</natOp><mod>55</mod><serie>1</serie><nNF>5001</nNF><dhEmi>2026-10-05T10:00:00-03:00</dhEmi><tpNF>1</tpNF><idDest>1</idDest><cMunFG>3505708</cMunFG></ide>
+    <emit><CNPJ>11222333000181</CNPJ><xNome>DISTRIBUIDORA FICTICIA HOSPITALAR LTDA</xNome><enderEmit><cMun>3505708</cMun><xMun>BARUERI</xMun><UF>SP</UF></enderEmit><CRT>3</CRT></emit>
+    <dest><CNPJ>33444555000166</CNPJ><xNome>HOSPITAL FICTICIO SAO LUCAS LTDA</xNome><enderDest><cMun>3550308</cMun><UF>SP</UF></enderDest><indIEDest>1</indIEDest></dest>
+    <det nItem="1">
+      <prod><cProd>MED001</cProd><cEAN>SEM GTIN</cEAN><xProd>DIPIRONA SODICA 500MG/ML INJ CX 100 AMP</xProd><NCM>30049099</NCM><CFOP>5102</CFOP><uCom>CX</uCom><qCom>10.0000</qCom><vUnCom>85.00</vUnCom><vProd>850.00</vProd><indTot>1</indTot><med><cProdANVISA>1000000000011</cProdANVISA><vPMC>120.00</vPMC></med></prod>
+      <imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>850.00</vBC><pICMS>18.00</pICMS><vICMS>153.00</vICMS></ICMS00></ICMS><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto>
+    </det>
+    <det nItem="2">
+      <prod><cProd>MED002</cProd><cEAN>SEM GTIN</cEAN><xProd>IMATINIBE 400MG CX 30 COMP (FICTICIO)</xProd><NCM>30049069</NCM><CFOP>5102</CFOP><uCom>CX</uCom><qCom>2.0000</qCom><vUnCom>2100.00</vUnCom><vProd>4200.00</vProd><indTot>1</indTot><med><cProdANVISA>1000000000022</cProdANVISA><vPMC>1800.00</vPMC></med></prod>
+      <imposto><ICMS><ICMS40><orig>0</orig><CST>40</CST></ICMS40></ICMS><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto>
+    </det>
+    <det nItem="3">
+      <prod><cProd>DIS001</cProd><cEAN>SEM GTIN</cEAN><xProd>SERINGA DESCARTAVEL 10ML CX 100UN</xProd><NCM>90183119</NCM><CFOP>5102</CFOP><uCom>CX</uCom><qCom>4.0000</qCom><vUnCom>80.00</vUnCom><vProd>320.00</vProd><vFrete>20.00</vFrete><indTot>1</indTot></prod>
+      <imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>340.00</vBC><pICMS>18.00</pICMS><vICMS>61.20</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>320.00</vBC><pPIS>1.65</pPIS><vPIS>5.28</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>320.00</vBC><pCOFINS>7.60</pCOFINS><vCOFINS>24.32</vCOFINS></COFINSAliq></COFINS></imposto>
+    </det>
+    <det nItem="4">
+      <prod><cProd>ACE001</cProd><cEAN>SEM GTIN</cEAN><xProd>CADEIRA DE RODAS DOBRAVEL</xProd><NCM>87139000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>1800.00</vUnCom><vProd>1800.00</vProd><indTot>1</indTot></prod>
+      <imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>1800.00</vBC><pICMS>18.00</pICMS><vICMS>324.00</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>1800.00</vBC><pPIS>1.65</pPIS><vPIS>29.70</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>1800.00</vBC><pCOFINS>7.60</pCOFINS><vCOFINS>136.80</vCOFINS></COFINSAliq></COFINS></imposto>
+    </det>
+    <det nItem="5">
+      <prod><cProd>MED003</cProd><cEAN>SEM GTIN</cEAN><xProd>POMADA MANIPULADA SEM REGISTRO</xProd><NCM>30049099</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>5.0000</qCom><vUnCom>30.00</vUnCom><vProd>150.00</vProd><indTot>1</indTot></prod>
+      <imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>150.00</vBC><pICMS>18.00</pICMS><vICMS>27.00</vICMS></ICMS00></ICMS><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto>
+    </det>
+    <det nItem="6">
+      <prod><cProd>VAC001</cProd><cEAN>SEM GTIN</cEAN><xProd>VACINA INFLUENZA FICTICIA DOSE</xProd><NCM>30024121</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>15.0000</qCom><vUnCom>100.00</vUnCom><vProd>1500.00</vProd><indTot>1</indTot><med><cProdANVISA>1000000000033</cProdANVISA><vPMC>95.00</vPMC></med></prod>
+      <imposto><ICMS><ICMS40><orig>0</orig><CST>40</CST></ICMS40></ICMS><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto>
+    </det>
+  </infNFe>
+ </NFe>
+</nfeProc>

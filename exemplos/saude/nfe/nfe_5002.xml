@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- NF-e FICTÍCIA para testes do simulador. Não tem assinatura nem autorização. -->
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+ <NFe>
+  <infNFe Id="NFe35261011222333000181550010000050021000050020" versao="4.00">
+    <ide><cUF>35</cUF><natOp>VENDA DE MERCADORIA</natOp><mod>55</mod><serie>1</serie><nNF>5002</nNF><dhEmi>2026-10-12T10:00:00-03:00</dhEmi><tpNF>1</tpNF><idDest>1</idDest><cMunFG>3505708</cMunFG></ide>
+    <emit><CNPJ>11222333000181</CNPJ><xNome>DISTRIBUIDORA FICTICIA HOSPITALAR LTDA</xNome><enderEmit><cMun>3505708</cMun><xMun>BARUERI</xMun><UF>SP</UF></enderEmit><CRT>3</CRT></emit>
+    <dest><CNPJ>44555666000177</CNPJ><xNome>PREFEITURA MUNICIPAL FICTICIA</xNome><enderDest><cMun>3552205</cMun><UF>SP</UF></enderDest><indIEDest>9</indIEDest></dest>
+    <det nItem="1">
+      <prod><cProd>MED001</cProd><cEAN>SEM GTIN</cEAN><xProd>DIPIRONA SODICA 500MG/ML INJ CX 100 AMP</xProd><NCM>30049099</NCM><CFOP>5102</CFOP><uCom>CX</uCom><qCom>20.0000</qCom><vUnCom>85.00</vUnCom><vProd>1700.00</vProd><indTot>1</indTot><med><cProdANVISA>1000000000011</cProdANVISA><vPMC>120.00</vPMC></med></prod>
+      <imposto><ICMS><ICMS40><orig>0</orig><CST>40</CST></ICMS40></ICMS><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto>
+    </det>
+    <det nItem="2">
+      <prod><cProd>DIS001</cProd><cEAN>SEM GTIN</cEAN><xProd>SERINGA DESCARTAVEL 10ML CX 100UN</xProd><NCM>90183119</NCM><CFOP>5102</CFOP><uCom>CX</uCom><qCom>20.0000</qCom><vUnCom>80.00</vUnCom><vProd>1600.00</vProd><indTot>1</indTot></prod>
+      <imposto><ICMS><ICMS40><orig>0</orig><CST>40</CST></ICMS40></ICMS><PIS><PISAliq><CST>01</CST><vBC>1600.00</vBC><pPIS>1.65</pPIS><vPIS>26.40</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>1600.00</vBC><pCOFINS>7.60</pCOFINS><vCOFINS>121.60</vCOFINS></COFINSAliq></COFINS></imposto>
+    </det>
+    <det nItem="3">
+      <prod><cProd>VAC001</cProd><cEAN>SEM GTIN</cEAN><xProd>VACINA INFLUENZA FICTICIA DOSE</xProd><NCM>30024121</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>30.0000</qCom><vUnCom>100.00</vUnCom><vProd>3000.00</vProd><indTot>1</indTot><med><cProdANVISA>1000000000033</cProdANVISA><vPMC>95.00</vPMC></med></prod>
+      <imposto><ICMS><ICMS40><orig>0</orig><CST>40</CST></ICMS40></ICMS><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto>
+    </det>
+  </infNFe>
+ </NFe>
+</nfeProc>
