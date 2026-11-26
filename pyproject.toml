@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simulador-reforma-sped"
-version = "0.2.1"
+version = "0.3.0"
 description = "Simula CBS, IBS e Imposto Seletivo sobre itens de uma EFD ICMS/IPI usando a Calculadora RTC oficial da Receita Federal"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -24,3 +24,4 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = ["contrato: contrato com a Calculadora RTC (contra a real, defina RTC_URL)"]

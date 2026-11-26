@@ -1,0 +1,220 @@
+{
+  "Comment": "Simulador RTC: confere a calculadora, simula cada cenário em paralelo, consolida e, se houver itens para revisão, espera a aprovação da área tributária. Qualquer falha (depois das retentativas) avisa a equipe no Slack via SNS.",
+  "QueryLanguage": "JSONata",
+  "StartAt": "ConferirCalculadora",
+  "States": {
+    "ConferirCalculadora": {
+      "Type": "Task",
+      "Comment": "Calculadora no ar e na versão esperada? Devolve a lista de cenários do TOML.",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Arguments": {
+        "FunctionName": "${FnConferir}",
+        "Payload": "{% $states.input %}"
+      },
+      "Assign": {
+        "entrada": "{% $states.input %}",
+        "registro": "{% $states.result.Payload.registro %}"
+      },
+      "Output": "{% $states.result.Payload.cenarios %}",
+      "Retry": [
+        {
+          "Comment": "O container da calculadora pode estar subindo (Java leva ~1 min).",
+          "ErrorEquals": ["CalculadoraIndisponivel"],
+          "IntervalSeconds": 20,
+          "BackoffRate": 1.5,
+          "MaxAttempts": 8,
+          "MaxDelaySeconds": 90
+        },
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2,
+          "BackoffRate": 2,
+          "MaxAttempts": 3
+        }
+      ],
+      "Catch": [
+        {
+          "Comment": "VersaoDivergente não está no Retry (não adianta repetir) e vem direto para cá; CalculadoraIndisponivel só chega depois de esgotar as 8 tentativas.",
+          "ErrorEquals": ["States.ALL"],
+          "Assign": {
+            "falha": "{% $merge([$states.errorOutput, {'estado': 'ConferirCalculadora'}]) %}"
+          },
+          "Next": "NotificarFalha"
+        }
+      ],
+      "Next": "SimularCenarios"
+    },
+
+    "SimularCenarios": {
+      "Type": "Map",
+      "Comment": "Um ramo por cenário (2026, 2027 ... 2033), até 4 ao mesmo tempo.",
+      "Items": "{% $states.input %}",
+      "MaxConcurrency": 4,
+      "ItemSelector": {
+        "prefixo": "{% $entrada.prefixo %}",
+        "config": "{% $entrada.config %}",
+        "entradas": "{% $entrada.entradas %}",
+        "registro": "{% $registro %}",
+        "execucao": "{% $states.context.Execution.Name %}",
+        "cenario": "{% $states.context.Map.Item.Value %}"
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": { "Mode": "INLINE" },
+        "StartAt": "SimularCenario",
+        "States": {
+          "SimularCenario": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Arguments": {
+              "FunctionName": "${FnSimular}",
+              "Payload": "{% $states.input %}"
+            },
+            "Output": "{% $states.result.Payload %}",
+            "Retry": [
+              {
+                "ErrorEquals": ["CalculadoraIndisponivel", "Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException", "Lambda.TooManyRequestsException"],
+                "IntervalSeconds": 5,
+                "BackoffRate": 2,
+                "MaxAttempts": 3
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "Catch": [
+        {
+          "Comment": "Um cenário que falhou (já com retentativas) derruba o Map inteiro.",
+          "ErrorEquals": ["States.ALL"],
+          "Assign": {
+            "falha": "{% $merge([$states.errorOutput, {'estado': 'SimularCenarios'}]) %}"
+          },
+          "Next": "NotificarFalha"
+        }
+      ],
+      "Next": "Consolidar"
+    },
+
+    "Consolidar": {
+      "Type": "Task",
+      "Comment": "Junta os totais de cada cenário em cenarios.csv.",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Arguments": {
+        "FunctionName": "${FnConsolidar}",
+        "Payload": {
+          "execucao": "{% $states.context.Execution.Name %}",
+          "resultados": "{% $states.input %}"
+        }
+      },
+      "Output": "{% $states.result.Payload %}",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2,
+          "BackoffRate": 2,
+          "MaxAttempts": 3
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Assign": {
+            "falha": "{% $merge([$states.errorOutput, {'estado': 'Consolidar'}]) %}"
+          },
+          "Next": "NotificarFalha"
+        }
+      ],
+      "Next": "PrecisaAprovacao"
+    },
+
+    "PrecisaAprovacao": {
+      "Type": "Choice",
+      "Comment": "Itens classificados por regra sem aprovação (ou com alerta) exigem revisão humana.",
+      "Choices": [
+        {
+          "Condition": "{% $states.input.em_revisao > 0 %}",
+          "Next": "AguardarAprovacao"
+        }
+      ],
+      "Default": "Concluido"
+    },
+
+    "AguardarAprovacao": {
+      "Type": "Task",
+      "Comment": "Publica no SNS e PAUSA até alguém devolver o task token (infra/aprovar.py). Pode esperar até 7 dias sem custo de computação.",
+      "Resource": "arn:aws:states:::sns:publish.waitForTaskToken",
+      "Arguments": {
+        "TopicArn": "${TopicoAprovacao}",
+        "Subject": "Simulador RTC: aprovação pendente",
+        "Message": "{% $join([\n  'Execução: ' & $states.context.Execution.Name,\n  $string($states.input.em_revisao) & ' item(ns) para revisão (revisao.csv de cada cenário).',\n  'Resumo: ' & $states.input.cenarios_csv,\n  '',\n  'Para aprovar:  python infra/aprovar.py aprovar --por \"SEU NOME\"',\n  'Para reprovar: python infra/aprovar.py reprovar --motivo \"...\"'\n], '\\n') %}",
+        "MessageAttributes": {
+          "task_token": {
+            "DataType": "String",
+            "StringValue": "{% $states.context.Task.Token %}"
+          }
+        }
+      },
+      "TimeoutSeconds": 604800,
+      "Output": "{% $merge([$states.input, {'aprovacao': $states.result}]) %}",
+      "Catch": [
+        {
+          "Comment": "Reprovação é decisão de negócio, não falha técnica: não avisa o Slack.",
+          "ErrorEquals": ["Reprovado", "States.Timeout"],
+          "Output": "{% $states.errorOutput %}",
+          "Next": "Reprovado"
+        },
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Assign": {
+            "falha": "{% $merge([$states.errorOutput, {'estado': 'AguardarAprovacao'}]) %}"
+          },
+          "Next": "NotificarFalha"
+        }
+      ],
+      "Next": "Concluido"
+    },
+
+    "NotificarFalha": {
+      "Type": "Task",
+      "Comment": "Publica no tópico de alertas; o AWS Chatbot assina o tópico e posta no canal do Slack. A mensagem segue o formato 'custom notification' do Chatbot.",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Arguments": {
+        "TopicArn": "${TopicoAlertas}",
+        "Message": "{% $string({\n  'version': '1.0',\n  'source': 'custom',\n  'content': {\n    'textType': 'client-markdown',\n    'title': ':rotating_light: Simulador RTC falhou em ' & $falha.estado,\n    'description': $join([\n      '*Erro:* `' & $falha.Error & '`',\n      '*Execução:* ' & $states.context.Execution.Name,\n      '*Detalhe:* ' & ($falha.Cause ? $substring($string($falha.Cause), 0, 700) : 'sem detalhe'),\n      '<https://' & $split($states.context.Execution.Id, ':')[3] & '.console.aws.amazon.com/states/home?region=' & $split($states.context.Execution.Id, ':')[3] & '#/v2/executions/details/' & $states.context.Execution.Id & '|Abrir a execução no console>'\n    ], '\\n')\n  },\n  'metadata': {\n    'summary': 'Simulador RTC: ' & $falha.Error & ' em ' & $falha.estado\n  }\n}) %}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "IntervalSeconds": 2,
+          "BackoffRate": 2,
+          "MaxAttempts": 3
+        }
+      ],
+      "Catch": [
+        {
+          "Comment": "Se nem o aviso sair, a execução ainda termina com o erro original (não com o do SNS).",
+          "ErrorEquals": ["States.ALL"],
+          "Next": "Falhou"
+        }
+      ],
+      "Next": "Falhou"
+    },
+
+    "Concluido": {
+      "Type": "Succeed"
+    },
+
+    "Falhou": {
+      "Type": "Fail",
+      "Comment": "O erro original (ex.: VersaoDivergente, CalculadoraIndisponivel) fica como Error da execução.",
+      "Error": "{% $falha.Error %}",
+      "Cause": "{% $falha.Cause ? $string($falha.Cause) : 'sem detalhe' %}"
+    },
+
+    "Reprovado": {
+      "Type": "Fail",
+      "Error": "{% $states.input.Error %}",
+      "Cause": "{% $states.input.Cause %}"
+    }
+  }
+}

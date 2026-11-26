@@ -1,0 +1,7 @@
+# Aprovações FICTÍCIAS das regras de classificação (exemplo do formato).
+# Uma linha por par (regra_id, cclasstrib): se a regra passar a produzir outro cClassTrib,
+# a aprovação deixa de valer. Os regra_id aparecem em itens.csv e regras_usadas.csv.
+regra_id;cclasstrib;aprovado_por;aprovado_em;observacao
+saude:med-anvisa;200032;Área tributária (EXEMPLO);2026-11-10;LC 214/2025, art. 133
+saude:soro-vacina;200053;Área tributária (EXEMPLO);2026-11-10;LC 214/2025, art. 146, § 1º, III
+saude:med-orgao-publico;200010;Área tributária (EXEMPLO);2026-11-10;LC 214/2025, art. 146, § 1º

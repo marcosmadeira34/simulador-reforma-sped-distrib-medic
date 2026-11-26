@@ -7,7 +7,7 @@ produto (registro 0200).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Iterator
@@ -47,6 +47,9 @@ def _registro(linha: str) -> dict[str, str] | None:
 class ResultadoLeitura:
     empresa: Empresa | None
     documentos_ignorados: int = 0
+    # C100 válidos sem nenhum C170 (em geral NF-e própria, que só traz C190).
+    # Guardamos o identificador para conferir se o XML da nota foi lido.
+    documentos_sem_itens: list[str] = field(default_factory=list)
 
 
 class EfdIcmsIpiParser:
@@ -83,8 +86,8 @@ class EfdIcmsIpiParser:
                 elif tipo == "0200":
                     self.produtos[reg["COD_ITEM"]] = reg
                 elif tipo == "C100":
-                    if atual is not None and atual.itens:
-                        yield atual
+                    if atual is not None:
+                        yield from self._fechar(atual)
                     if reg["COD_SIT"] not in COD_SIT_VALIDOS:
                         self.info.documentos_ignorados += 1
                         atual = None
@@ -96,8 +99,14 @@ class EfdIcmsIpiParser:
                     )
                 elif tipo == "C170" and atual is not None:
                     atual.itens.append(self._item(reg))
-        if atual is not None and atual.itens:
-            yield atual
+        if atual is not None:
+            yield from self._fechar(atual)
+
+    def _fechar(self, doc: Documento) -> Iterator[Documento]:
+        if doc.itens:
+            yield doc
+        else:
+            self.info.documentos_sem_itens.append(doc.identificador)
 
     def _item(self, reg: dict[str, str]) -> Item:
         produto = self.produtos.get(reg["COD_ITEM"], {})

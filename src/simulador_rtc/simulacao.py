@@ -14,6 +14,7 @@ import requests
 
 from .classificacao import Classificacao
 from .config import Config
+from .governanca import Governanca
 from .rtc.client import CalculadoraClient
 from .rtc.models import (AliquotasIS, AliquotasNominais, ComponentesBC, ImpostoSeletivo,
                          ItemOperacao, Operacao, ResultadoItem)
@@ -25,10 +26,19 @@ SEM_CLASSIFICACAO = "SEM_CLASSIFICACAO"
 ERRO_OPERACAO = "ERRO_OPERACAO"
 NCM_INEXISTENTE = "NCM_INEXISTENTE"
 
+DEBITO = "DEBITO"    # saída: tributo que a empresa paga
+CREDITO = "CREDITO"  # entrada: tributo que a empresa recupera
+ZERO = Decimal("0")
+
 
 @dataclass
 class LinhaResultado:
-    """Uma linha do relatório: o item do SPED, a classificação usada e as duas cargas."""
+    """Uma linha do relatório: o item do SPED, a classificação usada e as duas cargas.
+
+    `carga_atual`/`carga_nova` são os tributos do item (débito na saída, valor destacado
+    na compra). `credito_atual`/`credito_novo` são a parte que a empresa recupera nas
+    entradas, hoje e no cenário.
+    """
     documento: str
     data: str
     ind_oper: str
@@ -36,12 +46,19 @@ class LinhaResultado:
     item: Item
     classificacao: Classificacao | None
     estado: str
-    v_bc_nova: Decimal = Decimal("0")
-    v_cbs: Decimal = Decimal("0")
-    v_ibs: Decimal = Decimal("0")
-    v_is: Decimal = Decimal("0")
-    remanescentes: Decimal = Decimal("0")  # tributos atuais que ainda existem no cenário
+    v_bc_nova: Decimal = ZERO
+    v_cbs: Decimal = ZERO
+    v_ibs: Decimal = ZERO
+    v_is: Decimal = ZERO
+    remanescentes: Decimal = ZERO  # tributos atuais que ainda existem no cenário
+    credito_atual: Decimal = ZERO
+    credito_novo: Decimal = ZERO
+    cbs_ibs_na_carga: bool = True  # False no ano de teste (CBS/IBS compensáveis)
     erros: list[str] = field(default_factory=list)
+
+    @property
+    def natureza(self) -> str:
+        return CREDITO if self.ind_oper == "0" else DEBITO
 
     @property
     def alertas(self) -> tuple[str, ...]:
@@ -53,7 +70,8 @@ class LinhaResultado:
 
     @property
     def carga_nova(self) -> Decimal:
-        return self.v_cbs + self.v_ibs + self.v_is + self.remanescentes
+        cbs_ibs = self.v_cbs + self.v_ibs if self.cbs_ibs_na_carga else ZERO
+        return cbs_ibs + self.v_is + self.remanescentes
 
     @property
     def diferenca(self) -> Decimal:
@@ -62,6 +80,16 @@ class LinhaResultado:
 
 def _id_operacao(doc: Documento) -> str:
     return hashlib.md5(doc.identificador.encode()).hexdigest()
+
+
+def _fator_icms(config: Config) -> Decimal:
+    """Fração do ICMS de hoje que existe no cenário, para a base de CBS/IBS.
+
+    A calculadora aplica sozinha a vigência dos componentes (em 2033 ela já ignora o
+    ICMS), mas não conhece a redução gradual de 2029 a 2032. Sem o ICMS nos
+    remanescentes, o valor vai inteiro e a calculadora decide pela data.
+    """
+    return config.tributos_remanescentes.get("ICMS", Decimal("1"))
 
 
 def _montar_item(numero: int, item: Item, cls: Classificacao, config: Config) -> ItemOperacao:
@@ -76,19 +104,21 @@ def _montar_item(numero: int, item: Item, cls: Classificacao, config: Config) ->
         )
     comum = dict(numero=numero, ncm=item.ncm or None, cst=cls.cst, cClassTrib=cls.cclasstrib,
                  quantidade=item.quantidade or None, unidade=item.unidade or None, aliquotasNominais=aliq)
+    fator = _fator_icms(config)
+    v_icms, v_fcp = item.vl_icms * fator, item.vl_fcp * fator
 
     if is_cls is not None:
         # Base do IS = mesma composição da base unificada oficial (valor - desconto - ICMS).
         # A base de CBS/IBS fica derivada pela calculadora: BC(IS) + IS.
         return ItemOperacao(**comum, impostoSeletivo=ImpostoSeletivo(
             cst=is_cls.cst, cClassTrib=is_cls.cclasstrib,
-            baseCalculo=item.vl_item - item.vl_desc - item.vl_icms,
+            baseCalculo=item.vl_item - item.vl_desc - v_icms,
             quantidade=item.quantidade or None, unidade=item.unidade or None,
         ))
     return ItemOperacao(**comum, gComponentesBC=ComponentesBC(
         vProd=item.vl_item, vFrete=item.vl_frete or None, vSeg=item.vl_seg or None,
-        vOutro=item.vl_outro or None, vDesc=item.vl_desc or None, vICMS=item.vl_icms or None,
-        vFCP=item.vl_fcp or None, vPIS=item.vl_pis or None, vCOFINS=item.vl_cofins or None,
+        vOutro=item.vl_outro or None, vDesc=item.vl_desc or None, vICMS=v_icms or None,
+        vFCP=v_fcp or None, vPIS=item.vl_pis or None, vCOFINS=item.vl_cofins or None,
     ))
 
 
@@ -107,18 +137,33 @@ def montar_operacao(doc: Documento, empresa: Empresa, config: Config,
 
 
 class Simulador:
-    def __init__(self, config: Config, classificador, cliente: CalculadoraClient) -> None:
+    def __init__(self, config: Config, classificador, cliente: CalculadoraClient,
+                 governanca: Governanca | None = None) -> None:
         """`classificador` é qualquer objeto com `classificar_item(item, doc)`."""
         self.config = config
         self.classificador = classificador
         self.cliente = cliente
+        self.governanca = governanca or Governanca(cliente, config.data_fato_gerador)
+
+    def _remanescentes(self, item: Item) -> Decimal:
+        return sum((item.valor_tributo(t) * f for t, f in self.config.tributos_remanescentes.items()), ZERO)
+
+    def _creditos(self, item: Item, cls: Classificacao, r: ResultadoItem) -> tuple[Decimal, Decimal]:
+        """(crédito hoje, crédito no cenário) de um item de entrada."""
+        cfg = self.config
+        atual = sum((item.valor_tributo(t) for t in cfg.creditos_atuais), ZERO)
+        novo = sum((item.valor_tributo(t) * cfg.fator(t) for t in cfg.creditos_atuais), ZERO)
+        if cfg.cbs_ibs_na_carga:
+            cbs_ok, ibs_ok = self.cliente.credito_adquirente(cls.cclasstrib, cfg.data_fato_gerador)
+            novo += (r.v_cbs if cbs_ok else ZERO) + (r.v_ibs if ibs_ok else ZERO)
+        return atual, novo  # IS não gera crédito
 
     def _processar(self, doc: Documento, empresa: Empresa) -> list[LinhaResultado]:
         base = dict(documento=doc.identificador, data=doc.data, ind_oper=doc.ind_oper,
                     participante=doc.participante.cnpj if doc.participante else "")
         linhas: list[LinhaResultado] = []
         classificados: list[tuple[Item, Classificacao]] = []
-        data = self.config.dh_fato_gerador.date().isoformat()
+        data = self.config.data_fato_gerador
         for item in doc.itens:
             if self.config.validar_ncm and item.ncm and not self.cliente.ncm_existe(item.ncm, data):
                 linhas.append(LinhaResultado(
@@ -131,7 +176,7 @@ class Simulador:
                 linhas.append(LinhaResultado(item=item, classificacao=None, estado=SEM_CLASSIFICACAO,
                                              erros=["Nenhuma regra no de-para para este NCM/CFOP"], **base))
             else:
-                classificados.append((item, cls))
+                classificados.append((item, self.governanca.aplicar(cls)))
         if not classificados:
             return linhas
 
@@ -151,11 +196,15 @@ class Simulador:
                 linhas.append(LinhaResultado(item=item, classificacao=cls, estado=ERRO_OPERACAO,
                                              erros=["Item ausente na resposta"], **base))
                 continue
+            credito_atual, credito_novo = ZERO, ZERO
+            if doc.ind_oper == "0" and r.calculado:
+                credito_atual, credito_novo = self._creditos(item, cls, r)
             linhas.append(LinhaResultado(
                 item=item, classificacao=cls, estado=r.estado,
                 v_bc_nova=r.v_bc, v_cbs=r.v_cbs, v_ibs=r.v_ibs, v_is=r.v_is,
-                remanescentes=sum((item.valor_tributo(t) for t in self.config.tributos_remanescentes),
-                                  Decimal("0")),
+                remanescentes=self._remanescentes(item),
+                credito_atual=credito_atual, credito_novo=credito_novo,
+                cbs_ibs_na_carga=self.config.cbs_ibs_na_carga,
                 erros=[f"{e.code}: {e.detail}" for e in r.erros], **base,
             ))
         return linhas

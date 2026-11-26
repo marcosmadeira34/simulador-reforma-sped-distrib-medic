@@ -3,6 +3,8 @@ __pycache__/
 .venv/
 .pytest_cache/
 resultados/
+resultados_*/
 # Nunca versione arquivos SPED reais
 dados/
 *.sped
+cdk.out/

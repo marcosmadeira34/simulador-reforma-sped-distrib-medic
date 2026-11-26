@@ -29,6 +29,13 @@ class Classificacao:
     regra: str  # qual regra casou, para rastreabilidade
     imposto_seletivo: ClassificacaoIS | None = None
     alertas: tuple[str, ...] = ()  # motivos para revisão humana, mesmo com cálculo feito
+    regra_id: str = ""     # identificador estável da regra, usado nas aprovações
+    base_legal: str = ""   # preenchido pela governança (fundamentação da calculadora)
+    aprovacao: str = ""    # preenchido pela governança: quem aprovou e quando
+
+    @property
+    def id_regra(self) -> str:
+        return self.regra_id or self.regra
 
 
 INTEGRAL = ("000", "000001")

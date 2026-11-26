@@ -127,7 +127,7 @@ class ClassificadorSaude:
         if tipo in (TipoProduto.MEDICAMENTO, TipoProduto.SORO_VACINA):
             return self._medicamento(item, produto, tipo, comprador, alertas)
         if tipo is TipoProduto.OUTRO:
-            return self._integral("Produto fora dos tratamentos de saúde", alertas)
+            return self._integral("Produto fora dos tratamentos de saúde", alertas, "fora-saude")
 
         if tipo is None:  # sem cadastro: tenta todos os anexos por NCM
             candidatos = [c for lista in CANDIDATOS_NCM.values() for c in lista]
@@ -139,11 +139,11 @@ class ClassificadorSaude:
 
         for cclass in candidatos:
             if self.cliente.ncm_aplicavel(cclass, item.ncm, self.data):
-                return self._classe(cclass, f"ncm {item.ncm} aceito em {cclass}", alertas)
+                return self._classe(cclass, f"ncm {item.ncm} aceito em {cclass}", alertas, "ncm-anexo")
 
         if tipo is not None:
             alertas.append("NCM_FORA_DOS_ANEXOS")
-        return self._integral("Nenhum anexo de saúde aceitou o NCM", alertas)
+        return self._integral("Nenhum anexo de saúde aceitou o NCM", alertas, "ncm-fora-anexos")
 
     # -- regras -------------------------------------------------------------
     def _medicamento(self, item: Item, produto: Produto | None, tipo: TipoProduto,
@@ -152,23 +152,23 @@ class ClassificadorSaude:
         if not anvisa:
             # Sem registro na Anvisa (nem manipulado), não há benefício: risco de enquadramento.
             alertas.append("MEDICAMENTO_SEM_REGISTRO_ANVISA")
-            return self._integral("Medicamento sem registro na Anvisa", alertas)
+            return self._integral("Medicamento sem registro na Anvisa", alertas, "med-sem-anvisa")
         if produto and item.registro_anvisa and produto.registro_anvisa \
                 and _digitos(item.registro_anvisa) != _digitos(produto.registro_anvisa):
             alertas.append("REGISTRO_ANVISA_DIVERGENTE_DO_CADASTRO")
 
         if comprador is TipoComprador.ORGAO_PUBLICO:
-            return self._classe("200010", "medicamento para órgão público", alertas)
+            return self._classe("200010", "medicamento para órgão público", alertas, "med-orgao-publico")
         if comprador is TipoComprador.ENTIDADE_IMUNE:
             # LC 214, art. 146, §1º, II prevê alíquota zero para entidades CEBAS, mas a
             # descrição do 200010 na calculadora cita só órgãos públicos.
             alertas.append("CONFIRMAR_CODIGO_ENTIDADE_IMUNE")
-            return self._classe("200010", "medicamento para entidade de saúde imune", alertas)
+            return self._classe("200010", "medicamento para entidade de saúde imune", alertas, "med-entidade-imune")
         if tipo is TipoProduto.SORO_VACINA:
-            return self._classe("200053", "soro ou vacina", alertas)
+            return self._classe("200053", "soro ou vacina", alertas, "soro-vacina")
         if produto and produto.aliquota_zero:
-            return self._classe("200009", "medicamento na lista de alíquota zero (cadastro)", alertas)
-        return self._classe("200032", "medicamento com registro na Anvisa", alertas)
+            return self._classe("200009", "medicamento na lista de alíquota zero (cadastro)", alertas, "med-aliquota-zero")
+        return self._classe("200032", "medicamento com registro na Anvisa", alertas, "med-anvisa")
 
     def _comprador(self, doc: Documento) -> TipoComprador | None:
         if doc.ind_oper != "1" or doc.participante is None:
@@ -176,12 +176,12 @@ class ClassificadorSaude:
         return self.compradores.get(_cnpj(doc.participante.cnpj), TipoComprador.PRIVADO)
 
     @staticmethod
-    def _classe(cclass: str, motivo: str, alertas: list[str]) -> Classificacao:
+    def _classe(cclass: str, motivo: str, alertas: list[str], regra_id: str) -> Classificacao:
         return Classificacao(cst="200", cclasstrib=cclass, descricao=CLASSES[cclass],
-                             regra=f"saude: {motivo}", alertas=tuple(alertas))
+                             regra=f"saude: {motivo}", alertas=tuple(alertas), regra_id=f"saude:{regra_id}")
 
     @staticmethod
-    def _integral(motivo: str, alertas: list[str]) -> Classificacao:
+    def _integral(motivo: str, alertas: list[str], regra_id: str) -> Classificacao:
         cst, cclass = INTEGRAL
         return Classificacao(cst=cst, cclasstrib=cclass, descricao="Tributação integral",
-                             regra=f"saude: {motivo}", alertas=tuple(alertas))
+                             regra=f"saude: {motivo}", alertas=tuple(alertas), regra_id=f"saude:{regra_id}")

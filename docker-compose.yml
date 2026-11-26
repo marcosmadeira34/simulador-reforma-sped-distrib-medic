@@ -4,7 +4,9 @@ services:
       context: .
       dockerfile: docker/calculadora.Dockerfile
       args:
-        RTC_REF: main
+        # Versão fixa: cada release muda regras e tabelas. Para subir de versão, rode antes
+        # os testes de contrato (RTC_URL=... pytest -m contrato) e atualize versao_esperada.
+        RTC_REF: "1.6.1"
     ports:
       - "8080:8080"
     healthcheck:

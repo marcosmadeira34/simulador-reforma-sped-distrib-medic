@@ -1,0 +1,82 @@
+# Transição 2026–2033 para a distribuidora: um cenário por ano, na mesma execução.
+# Cada [[cenarios]] herda [simulacao] e sobrescreve o que declarar. Saída: uma pasta por
+# cenário e um resumo em cenarios.csv.
+#
+# ALÍQUOTAS DE 2029 EM DIANTE SÃO ILUSTRATIVAS: hipótese de IBS de referência de 17,7%
+# (10,0 estadual + 7,7 municipal) aplicado na fração da transição (10%, 20%, 30%, 40%, 100%).
+# Substitua pelas alíquotas fixadas pelo Senado, estados e municípios.
+[calculadora]
+url = "http://localhost:8080/api"
+timeout_s = 30
+workers = 4
+versao_esperada = "1.6.1"
+
+[simulacao]
+setor = "saude"
+informar_tp_doc = true
+validar_ncm = true
+creditos_atuais = ["ICMS", "PIS", "COFINS"]
+
+[governanca]
+aprovacoes = "../exemplos/saude/aprovacoes.csv"
+exigir_aprovacao = false
+
+[saude]
+cadastro_produtos = "../exemplos/saude/cadastro_produtos.csv"
+cadastro_participantes = "../exemplos/saude/participantes.csv"
+
+# 2026, ano de teste: a calculadora aplica 0,9% de CBS e 0,1% de IBS (não aceita alíquotas
+# nominais). O valor é compensável com PIS/COFINS, então fica fora da carga; os tributos
+# atuais seguem todos.
+[[cenarios]]
+nome = "2026"
+dh_fato_gerador = "2026-06-15T10:00:00-03:00"
+tributos_remanescentes = ["ICMS", "ICMS_ST", "IPI", "PIS", "COFINS"]
+cbs_ibs_na_carga = false
+
+# 2027–2028: CBS cheia, IBS de 0,1%; PIS/COFINS extintos, IPI zerado (fora da ZFM).
+# Alíquotas do exemplo oficial da calculadora.
+[[cenarios]]
+nome = "2027"
+dh_fato_gerador = "2027-06-15T10:00:00-03:00"
+tributos_remanescentes = ["ICMS", "ICMS_ST"]
+aliquotas_nominais = { cbs = 8.8, ibs_estadual = 0.05, ibs_municipal = 0.05 }
+
+[[cenarios]]
+nome = "2028"
+dh_fato_gerador = "2028-06-15T10:00:00-03:00"
+tributos_remanescentes = ["ICMS", "ICMS_ST"]
+aliquotas_nominais = { cbs = 8.8, ibs_estadual = 0.05, ibs_municipal = 0.05 }
+
+# 2029–2032: o ICMS cai para 9/10, 8/10, 7/10 e 6/10 e o IBS sobe na mesma proporção.
+# A fração do ICMS também reduz o ICMS abatido da base de CBS/IBS.
+[[cenarios]]
+nome = "2029"
+dh_fato_gerador = "2029-06-15T10:00:00-03:00"
+tributos_remanescentes = { ICMS = 0.9, ICMS_ST = 0.9 }
+aliquotas_nominais = { cbs = 8.8, ibs_estadual = 1.0, ibs_municipal = 0.77 }
+
+[[cenarios]]
+nome = "2030"
+dh_fato_gerador = "2030-06-15T10:00:00-03:00"
+tributos_remanescentes = { ICMS = 0.8, ICMS_ST = 0.8 }
+aliquotas_nominais = { cbs = 8.8, ibs_estadual = 2.0, ibs_municipal = 1.54 }
+
+[[cenarios]]
+nome = "2031"
+dh_fato_gerador = "2031-06-15T10:00:00-03:00"
+tributos_remanescentes = { ICMS = 0.7, ICMS_ST = 0.7 }
+aliquotas_nominais = { cbs = 8.8, ibs_estadual = 3.0, ibs_municipal = 2.31 }
+
+[[cenarios]]
+nome = "2032"
+dh_fato_gerador = "2032-06-15T10:00:00-03:00"
+tributos_remanescentes = { ICMS = 0.6, ICMS_ST = 0.6 }
+aliquotas_nominais = { cbs = 8.8, ibs_estadual = 4.0, ibs_municipal = 3.08 }
+
+# 2033: ICMS extinto, só CBS/IBS/IS.
+[[cenarios]]
+nome = "2033"
+dh_fato_gerador = "2033-06-15T10:00:00-03:00"
+tributos_remanescentes = []
+aliquotas_nominais = { cbs = 8.8, ibs_estadual = 10.0, ibs_municipal = 7.7 }
